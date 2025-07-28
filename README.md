@@ -1,8 +1,7 @@
 # CyberTemp
 
 A Python client library and service for interacting with the CyberTemp temporary email API. It enables you to generate disposable email addresses, monitor inboxes, and extract URLs or verification codes—ideal for testing or privacy-safe sign‑ups.
-
-src="https://github.com/user-attachments/assets/adef87e4-57a3-40d4-9278-5741a3d8e817" />
+<img width="1728" height="886" alt="Screenshot 2025-07-29 at 00 14 37" src="https://github.com/user-attachments/assets/adef87e4-57a3-40d4-9278-5741a3d8e817" />
 
 
 ## 🚀 Features
