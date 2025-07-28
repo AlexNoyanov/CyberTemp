@@ -3,7 +3,11 @@
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 
+#include "driver/temperature_sensor.h"
+
 #define LED_BUILTIN 8
+
+#define UPDATE_TIME 30000 // Wait 30 seconds
 
 const char* ssid = "Get-7368B0";
 const char* password = "qjzkld2mjy";
@@ -12,8 +16,35 @@ const char* token = "#tkn25!@";  // MUST MATCH PHP TOKEN
 
 WiFiClientSecure client;
 
+temperature_sensor_handle_t temp_handle = NULL;
+
+// Initialize temperature sensor configuration
+temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
+
+// Install temperature sensor driver
+esp_err_t err = temperature_sensor_install(&temp_sensor_config, &temp_handle);
+
 float readTemperature() {
-  return 22.6; // Your sensor reading
+
+  if (err != ESP_OK) {
+    Serial.printf("Failed to install temperature sensor: 0x%x\n", err);
+    return -127.0; // Error value
+  }
+  
+  // Read temperature
+  float tsens_out;
+  err = temperature_sensor_get_celsius(temp_handle, &tsens_out);
+  
+  // // Disable sensor to save power
+  // temperature_sensor_disable(temp_handle);
+  
+  if (err != ESP_OK) {
+    Serial.printf("Temperature read failed: 0x%x\n", err);
+    return -127.0; // Error value
+  }
+  
+  Serial.printf("Internal temperature: %.2f°C\n", tsens_out);
+  return tsens_out;
 }
 
 void blinkPattern(int times, int duration) {
@@ -31,6 +62,12 @@ void setup() {
   
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+
+    // Enable temperature sensor
+  err = temperature_sensor_enable(temp_handle);
+  if (err != ESP_OK) {
+    Serial.printf("Failed to enable temperature sensor: 0x%x\n", err);
+  }
   
   // Configure WiFiClientSecure
   client.setInsecure(); // Bypass SSL certificate validation
@@ -138,5 +175,5 @@ void loop() {
   // 7. Cleanup
   http.end();
   
-  delay(30000); // Wait 30 seconds
+  delay(UPDATE_TIME); // Wait 30 seconds
 }
