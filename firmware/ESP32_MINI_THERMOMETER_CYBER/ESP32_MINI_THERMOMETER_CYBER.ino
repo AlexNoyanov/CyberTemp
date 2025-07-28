@@ -9,10 +9,10 @@
 
 #define UPDATE_TIME 30000 // Wait 30 seconds
 
-const char* ssid = "Get-7368B0";
-const char* password = "qjzkld2mjy";
+const char* ssid = "YOUR-WIFI";
+const char* password = "YOUR-WIFI-PASSWORD";
 const char* serverUrl = "https://noyanov.com/Apps/Temp/api/update.php";
-const char* token = "#tkn25!@";  // MUST MATCH PHP TOKEN
+const char* token = "YOUR-API-TOKEN";  // MUST MATCH PHP TOKEN
 
 WiFiClientSecure client;
 

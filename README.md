@@ -12,47 +12,16 @@ A Python client library and service for interacting with the CyberTemp temporary
 - Extract URLs from email bodies using regex  
 - (Premium/API-key) Access rate‑limit removal, balance checks, private mailbox, delete emails/inbox  
 
-## 📦 Installation
+## 📦 Installation and setup
 
-```bash
-pip install cybertemp
-```
+Set WI-FI passwords in 
 
-or install a specific version:
-
-```bash
-pip install cybertemp==0.0.4
-```
 
 ## 🧰 Quick Start
 
-```python
-from cybertemp import CyberTemp
-
-# Free tier—with automatic built‑in delay
-client = CyberTemp(debug=True)
-
-# Or premium via API key
-client = CyberTemp(api_key="YOUR_API_KEY")
-
-# List available domains
-domains = client.get_domains()
-
-# Poll inbox—for example with retries
-emails = client.get_email_content("test@cybertemp.xyz", max_retries=3, delay_between_retries=2.0)
-
-# Get a single email by its ID
-email = client.get_email_content_by_id("email_id_here")
-
-# Find a mail by subject substring
-mail_id = client.get_mail_by_subject(email="test@cybertemp.xyz", subject_contains="Verification", max_attempts=5, delay_between_retries=1.5)
-
-# Extract a URL matching a regex pattern from an email
-url = client.extract_url_from_message(email="test@cybertemp.xyz", subject_contains="Verification", url_pattern=r'https://[^\s<>"]+', max_attempts=5, delay_between_retries=1.5)
-
-# (Premium only) Check your API balance
-balance = client.get_balance()
-```
+1) Deploy /api folder on your server with index.html file
+2) Install firmware on ESP32 from /firmware folder and change links to api
+3) Test it!
 
 ## ⚠️ Rate Limits
 
