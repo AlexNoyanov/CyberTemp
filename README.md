@@ -1,8 +1,11 @@
+# 🛠️ CyberTemp UI-Kit
+UI-Kit with all the cyberpunk parts and how to use them:
+https://noyanov.com/Apps/Temp/ui-kit.html
+<img width="1727" height="918" alt="Screenshot 2025-08-01 at 01 07 17" src="https://github.com/user-attachments/assets/e69f4a83-b730-4feb-b696-5423461f4d7c" />
+
 # CyberTemp
-
-Try here with real life data:
+Live demo with my real ESP32 data
 https://noyanov.com/Apps/Temp/
-
 Cyberpunk styled IoT sensor pannel showing temperature from ESP32-C3 Super Mini board
 
 V2.0 
@@ -12,7 +15,6 @@ New V3.0 with Thermal Gauge elements
 <img width="867" height="852" alt="Screenshot 2025-08-01 at 00 51 05" src="https://github.com/user-attachments/assets/c5ea61cc-f4f9-4c35-8e50-a243558aee77" />
 
 ## 📦 Installation and setup
-
 Set WI-FI passwords in firmware code and token for API there and in update.php /api method
 
 
