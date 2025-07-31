@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Temperature UI Kit</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #0ff;
+            --neon-pink: #f0f;
+            --matrix-green: #0f0;
+            --dark-bg: #0a0a12;
+            --alarm-red: #f00;
+            --neon-purple: #b967ff;
+            --neon-blue: #3d7bff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--dark-bg);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Background effects */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+        
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to bottom, rgba(0, 255, 255, 0.1), rgba(0, 255, 255, 0.8));
+            z-index: -1;
+            animation: scan 4s linear infinite;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+        
+        @keyframes scan {
+            0% { top: -6px; }
+            100% { top: 100%; }
+        }
+        
+        /* Container styling */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            letter-spacing: 3px;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .component-card {
+            background: rgba(10, 15, 30, 0.85);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(240, 0, 240, 0.1) 0%, transparent 25%);
+            z-index: -1;
+        }
+        
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        
+        .component-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-pink);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(240, 0, 240, 0.7);
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .component-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .component-code {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            color: var(--neon-cyan);
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        
+        .component-demo {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+        }
+        
+        /* Thermal Gauge Component */
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .gauge {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .gauge-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(10, 20, 40, 0.7);
+            border: 4px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 
+                inset 0 0 15px rgba(0, 255, 255, 0.3),
+                0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        
+        .gauge-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 100%, 0 100%, 0 0, 50% 0);
+            background: conic-gradient(
+                var(--neon-purple) 0%, 
+                var(--neon-blue) 50%, 
+                var(--neon-cyan) 100%
+            );
+            opacity: 0.7;
+            transform: rotate(-135deg);
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .gauge-needle {
+            position: absolute;
+            width: 3px;
+            height: 90px;
+            background: var(--neon-pink);
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            box-shadow: 0 0 10px var(--neon-pink);
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--dark-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 11;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+        
+        .gauge-label {
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+        
+        /* Core Temperature Component */
+        .core-temp-display {
+            font-size: 5rem;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px rgba(240, 0, 240, 0.8);
+            position: relative;
+            text-align: center;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .core-temp-unit {
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            vertical-align: super;
+            margin-left: 5px;
+        }
+        
+        .core-temp-info {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .core-temp-info span {
+            color: var(--neon-cyan);
+            font-weight: 500;
+        }
+        
+        /* Temperature Fluctuation Graph */
+        .graph-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+        }
+        
+        .graph-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: var(--neon-cyan);
+            font-size: 0.9rem;
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .temp-btn {
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 8px 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+        
+        .temp-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-grid"></div>
+    <div class="scan-line"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>CYBERPUNK TEMPERATURE UI KIT</h1>
+            <p>Three cyberpunk-styled components for temperature visualization: Thermal Gauge, Core Temperature, and Temperature Fluctuation Graph</p>
+        </div>
+        
+        <div class="components-grid">
+            <!-- Thermal Gauge Component -->
+            <div class="component-card">
+                <h2 class="component-title">Thermal Gauge</h2>
+                <p class="component-description">
+                    A circular gauge with a needle that dynamically shows the current temperature. 
+                    Features neon glow effects and smooth animations. The gauge range is 0-50°C.
+                </p>
+                
+                <div class="component-code">
+                    &lt;div class="gauge-container" id="thermalGauge"&gt;<br>
+                    &nbsp;&nbsp;&lt;div class="gauge"&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="gauge-bg"&gt;&lt;/div&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="gauge-fill"&gt;&lt;/div&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="gauge-needle"&gt;&lt;/div&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="gauge-center"&gt;&lt;/div&gt;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="gauge-label"&gt;--°C&lt;/div&gt;<br>
+                    &nbsp;&nbsp;&lt;/div&gt;<br>
+                    &lt;/div&gt;
+                </div>
+                
+                <div class="component-demo">
+                    <div class="gauge-container" id="thermalGauge">
+                        <div class="gauge">
+                            <div class="gauge-bg"></div>
+                            <div class="gauge-fill"></div>
+                            <div class="gauge-needle"></div>
+                            <div class="gauge-center"></div>
+                            <div class="gauge-label">--°C</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="temp-btn" onclick="updateGaugeTemp(15)">15°C</button>
+                    <button class="temp-btn" onclick="updateGaugeTemp(25)">25°C</button>
+                    <button class="temp-btn" onclick="updateGaugeTemp(35)">35°C</button>
+                </div>
+            </div>
+            
+            <!-- Core Temperature Component -->
+            <div class="component-card">
+                <h2 class="component-title">Core Temperature</h2>
+                <p class="component-description">
+                    A large display showing the current temperature with a holographic effect. 
+                    Includes sensor information and supports both Celsius and Fahrenheit.
+                </p>
+                
+                <div class="component-code">
+                    &lt;div class="core-temp-display" id="coreTempDisplay"&gt;<br>
+                    &nbsp;&nbsp;&lt;span id="coreTempValue"&gt;--&lt;/span&gt;<br>
+                    &nbsp;&nbsp;&lt;span class="core-temp-unit" id="coreTempUnit"&gt;°C&lt;/span&gt;<br>
+                    &lt;/div&gt;<br>
+                    &lt;div class="core-temp-info"&gt;<br>
+                    &nbsp;&nbsp;SENSOR: &lt;span id="coreSensor"&gt;SENSOR-01&lt;/span&gt; | <br>
+                    &nbsp;&nbsp;STATUS: &lt;span id="coreStatus"&gt;NOMINAL&lt;/span&gt;<br>
+                    &lt;/div&gt;
+                </div>
+                
+                <div class="component-demo">
+                    <div class="core-temp-display" id="coreTempDisplay">
+                        <span id="coreTempValue">--</span>
+                        <span class="core-temp-unit" id="coreTempUnit">°C</span>
+                    </div>
+                    <div class="core-temp-info">
+                        SENSOR: <span id="coreSensor">SENSOR-01</span> | 
+                        STATUS: <span id="coreStatus">NOMINAL</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="temp-btn" onclick="updateCoreTemp(18.5)">Cool</button>
+                    <button class="temp-btn" onclick="updateCoreTemp(24.8)">Normal</button>
+                    <button class="temp-btn" onclick="updateCoreTemp(32.3)">Warm</button>
+                    <button class="temp-btn" onclick="toggleTempUnit()">Toggle °C/°F</button>
+                </div>
+            </div>
+            
+            <!-- Temperature Fluctuation Graph -->
+            <div class="component-card">
+                <h2 class="component-title">Temperature Fluctuation</h2>
+                <p class="component-description">
+                    A line graph showing temperature changes over time. 
+                    Features neon glow effects and dynamic data updates. 
+                    Includes time markers for reference.
+                </p>
+                
+                <div class="component-code">
+                    &lt;div class="graph-container"&gt;<br>
+                    &nbsp;&nbsp;&lt;canvas id="tempGraph"&gt;&lt;/canvas&gt;<br>
+                    &lt;/div&gt;<br>
+                    &lt;div class="graph-labels"&gt;<br>
+                    &nbsp;&nbsp;&lt;span&gt;10 MIN AGO&lt;/span&gt;<br>
+                    &nbsp;&nbsp;&lt;span&gt;NOW&lt;/span&gt;<br>
+                    &lt;/div&gt;
+                </div>
+                
+                <div class="component-demo">
+                    <div class="graph-container">
+                        <canvas id="tempGraph"></canvas>
+                    </div>
+                    <div class="graph-labels">
+                        <span>10 MIN AGO</span>
+                        <span>NOW</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="temp-btn" onclick="simulateStableTemp()">Stable</button>
+                    <button class="temp-btn" onclick="simulateRisingTemp()">Rising</button>
+                    <button class="temp-btn" onclick="simulateFluctuatingTemp()">Fluctuating</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize components
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize gauge
+            updateGaugeTemp(22);
+            
+            // Initialize core temperature
+            updateCoreTemp(22.5);
+            
+            // Initialize graph
+            initTempGraph();
+            simulateStableTemp();
+        });
+        
+        // Thermal Gauge Functions
+        function updateGaugeTemp(temp) {
+            // Convert temp to angle (0°C = -135deg, 50°C = 135deg)
+            const minAngle = -135;
+            const maxAngle = 135;
+            const tempRange = 50;
+            
+            const angle = minAngle + ((temp / tempRange) * (maxAngle - minAngle));
+            document.querySelector('.gauge-needle').style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            
+            // Update gauge label
+            document.querySelector('.gauge-label').textContent = `${temp}°C`;
+            
+            // Update fill rotation
+            const fillRotation = (temp / 50) * 270 - 135;
+            document.querySelector('.gauge-fill').style.transform = `rotate(${fillRotation}deg)`;
+        }
+        
+        // Core Temperature Functions
+        let isCelsius = true;
+        
+        function updateCoreTemp(temp) {
+            const displayTemp = isCelsius ? temp : (temp * 9/5 + 32).toFixed(1);
+            document.getElementById('coreTempValue').textContent = displayTemp;
+            
+            // Update status based on temperature
+            let status = "NOMINAL";
+            let statusColor = "#0ff";
+            
+            if (temp > 30) {
+                status = "WARNING";
+                statusColor = "#ff0";
+            } else if (temp > 35) {
+                status = "CRITICAL";
+                statusColor = "#f00";
+            }
+            
+            document.getElementById('coreStatus').textContent = status;
+            document.getElementById('coreStatus').style.color = statusColor;
+            
+            // Visual feedback for high temperature
+            const display = document.getElementById('coreTempDisplay');
+            display.style.textShadow = temp > 30 
+                ? '0 0 20px rgba(240, 0, 240, 1)' 
+                : '0 0 15px rgba(240, 0, 240, 0.8)';
+        }
+        
+        function toggleTempUnit() {
+            isCelsius = !isCelsius;
+            const unit = isCelsius ? "°C" : "°F";
+            document.getElementById('coreTempUnit').textContent = unit;
+            
+            // Get current temp and update display
+            const currentTemp = parseFloat(document.getElementById('coreTempValue').textContent);
+            updateCoreTemp(isCelsius ? currentTemp : (currentTemp - 32) * 5/9);
+        }
+        
+        // Temperature Graph Functions
+        let tempChart;
+        
+        function initTempGraph() {
+            const ctx = document.getElementById('tempGraph').getContext('2d');
+            tempChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        label: 'Temperature',
+                        data: [],
+                        borderColor: '#f0f',
+                        backgroundColor: 'rgba(240, 0, 240, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 10,
+                            max: 40,
+                            grid: { 
+                                color: 'rgba(0, 255, 255, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: { 
+                                display: false
+                            }
+                        },
+                        x: { 
+                            display: false,
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+        }
+        
+        function updateTempGraph(temp) {
+            if(tempChart.data.datasets[0].data.length >= 20) {
+                tempChart.data.datasets[0].data.shift();
+            }
+            tempChart.data.datasets[0].data.push(temp);
+            tempChart.update();
+        }
+        
+        // Simulation functions
+        function simulateStableTemp() {
+            // Clear existing data
+            tempChart.data.datasets[0].data = [];
+            
+            // Generate stable temperature data
+            for (let i = 0; i < 20; i++) {
+                tempChart.data.datasets[0].data.push(22 + Math.random() * 0.5);
+            }
+            tempChart.update();
+        }
+        
+        function simulateRisingTemp() {
+            // Clear existing data
+            tempChart.data.datasets[0].data = [];
+            
+            // Generate rising temperature data
+            for (let i = 0; i < 20; i++) {
+                tempChart.data.datasets[0].data.push(18 + i * 0.7 + Math.random() * 0.8);
+            }
+            tempChart.update();
+        }
+        
+        function simulateFluctuatingTemp() {
+            // Clear existing data
+            tempChart.data.datasets[0].data = [];
+            
+            // Generate fluctuating temperature data
+            for (let i = 0; i < 20; i++) {
+                const fluctuation = Math.sin(i / 3) * 4;
+                tempChart.data.datasets[0].data.push(22 + fluctuation + Math.random() * 0.5);
+            }
+            tempChart.update();
+        }
+    </script>
+</body>
+</html>
